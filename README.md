@@ -1,94 +1,97 @@
-# WiFiScanner
+# WiFi Scanner
 
-**WiFiScanner** 是一个专为 Windows 平台设计的 WiFi 扫描工具，利用 Windows WLAN API 实现无线网络扫描，并通过 ImGui 提供友好的图形用户界面来展示扫描结果。该工具支持数据排序、刷新功能，并能将扫描数据保存为 CSV 文件。此外，项目中的 **WifiScanner.hpp** 文件封装了 WiFi 扫描的核心逻辑，便于在其他项目中复用。
-
----
-
-## 功能特性
-
-- **WiFi 扫描功能**：
-  - 利用 Windows WLAN API 捕获附近的 WiFi 网络信息，包括 SSID、BSSID、信道和信号强度等。
-- **数据展示与排序**：
-  - 使用 ImGui 实现扫描结果的表格化展示，支持按 SSID、BSSID、信道和信号强度排序。
-- **CSV 数据导出**：
-  - 根据当前时间戳自动生成文件名，将扫描结果保存至 `WIFI/` 文件夹中，并提供操作反馈。
-- **模块化设计**：
-  - **WifiScanner.hpp** 封装了所有 WiFi 扫描逻辑，可作为独立组件集成至其他项目中，便于扩展和复用。
+**WiFi Scanner** is a WiFi scanning tool designed for the Windows platform. It utilizes the Windows WLAN API to perform wireless network scans and presents the results through a user-friendly graphical interface powered by ImGui. The tool supports data sorting, refreshing, and exporting scan results to CSV files. Additionally, the **WifiScanner.hpp** file encapsulates the core logic of WiFi scanning, making it easy to integrate into other projects.
 
 ---
 
-## 效果预览
+## Features
 
-（请在此处插入效果展示图片）
+- **WiFi Scanning:**
+  - Uses the Windows WLAN API to capture nearby WiFi network information, including SSID, BSSID, channel, and signal strength.
+- **Data Display & Sorting:**
+  - Displays scan results in a tabular format using ImGui, with support for sorting by SSID, BSSID, channel, and signal strength.
+- **CSV Data Export:**
+  - Automatically generates file names based on timestamps and saves scan results in the `WIFI/` folder, with operation feedback.
+- **Modular Design:**
+  - **WifiScanner.hpp** encapsulates all WiFi scanning logic, allowing it to be used as a standalone component for easy integration and extension.
 
 ---
 
-## 构建指南
+## Preview
 
-1. **克隆仓库**
+![alt text](image.png)
+
+---
+
+## Build Guide
+
+1. **Clone the Repository**
    
    ```bash
    git clone https://github.com/yourusername/your-repo.git
    cd your-repo
    ```
 
-2. **创建构建目录并编译**
+2. **Create Build Directory & Compile**
    
    ```bash
-   mkdir buildcd buildcmake ..make
+   mkdir build
+   cd build
+   cmake ..
+   make
    ```
 
-3. **运行程序**：执行生成的可执行文件，启动 WiFi 扫描器。
+3. **Run the Program:** Execute the generated binary to launch the WiFi scanner.
 
 ---
 
-## 核心代码解析
+## Core Code Analysis
 
-### WiFi 扫描功能（WifiScanner.hpp）
+### WiFi Scanning (WifiScanner.hpp)
 
-**WifiScanner.hpp** 文件封装了 WiFi 扫描的核心逻辑，主要包括：
+The **WifiScanner.hpp** file encapsulates the core WiFi scanning logic, including:
 
-- **WLAN 客户端初始化**：
-  - 打开 WLAN 句柄，注册扫描完成回调。
-- **强制刷新扫描**：
-  - 遍历无线接口，发起扫描请求，等待扫描完成后更新 AP 列表。
-- **数据解析**：
-  - 解析 WLAN API 返回的扫描结果，提取并格式化信道、信号强度、SSID 和 BSSID 信息。
-- **模块化设计**：
-  - **WifiScanner.hpp** 可作为独立组件使用，只需引入该头文件并链接 `Wlanapi` 库即可实现无线网络扫描功能。
+- **WLAN Client Initialization:**
+  - Opens a WLAN handle and registers a scan completion callback.
+- **Force Refresh Scan:**
+  - Iterates over wireless interfaces, initiates a scan request, waits for completion, and updates the AP list.
+- **Data Parsing:**
+  - Parses scan results returned by the WLAN API, extracting and formatting channel, signal strength, SSID, and BSSID information.
+- **Modular Design:**
+  - **WifiScanner.hpp** can be used as a standalone component—simply include the header file and link against the `Wlanapi` library to enable wireless network scanning.
 
-### 独立使用示例
+### Standalone Usage Example
 
-以下示例展示了如何单独使用 **WifiScanner.hpp** 执行 WiFi 扫描并输出扫描结果：
+The following example demonstrates how to use **WifiScanner.hpp** independently to perform WiFi scanning and output the results:
 
 ```cpp
 #include "WifiScanner.hpp"
 #include <iostream>
 
 int main() {
-    // 创建 WifiScanner 实例
+    // Create WifiScanner instance
     WifiScanner scanner;
 
-    // 检查 WLAN 句柄是否初始化成功
+    // Check if WLAN handle initialization was successful
     if (!scanner.IsValid()) {
-        std::cerr << "WLAN 句柄初始化失败！" << std::endl;
+        std::cerr << "Failed to initialize WLAN handle!" << std::endl;
         return -1;
     }
 
-    // 触发扫描并等待完成
-    std::cout << "正在扫描 WiFi 接入点..." << std::endl;
+    // Trigger scan and wait for completion
+    std::cout << "Scanning WiFi access points..." << std::endl;
     scanner.ForceRefresh();
 
-    // 获取扫描结果
+    // Retrieve scan results
     const auto& apList = scanner.GetAPList();
-    std::cout << "共扫描到 " << apList.size() << " 个接入点:" << std::endl;
+    std::cout << "Found " << apList.size() << " access points:" << std::endl;
 
-    // 输出接入点信息
+    // Output access point information
     for (const auto& ap : apList) {
         std::cout << "SSID: " << ap.ssid 
                   << ", BSSID: " << ap.bssid 
-                  << ", 信道: " << (ap.channel > 0 ? std::to_string(ap.channel) : "未知")
-                  << ", 信号强度: " << ap.signal << " dBm" 
+                  << ", Channel: " << (ap.channel > 0 ? std::to_string(ap.channel) : "Unknown")
+                  << ", Signal Strength: " << ap.signal << " dBm" 
                   << std::endl;
     }
 
@@ -96,18 +99,18 @@ int main() {
 }
 ```
 
-只需将 **WifiScanner.hpp** 包含进项目，并链接 `Wlanapi` 库，即可在其他项目中复用该功能。
+Simply include **WifiScanner.hpp** in your project and link against the `Wlanapi` library to reuse this functionality in other projects.
 
 ---
 
-## 许可证信息
+## License
 
-本项目遵循 MIT 许可证，详细信息请参见 [LICENSE](https://github.com/yourusername/your-repo/blob/main/LICENSE) 文件。
+This project is licensed under the MIT License. 
 
 ---
 
-## 贡献指南
+## Contribution Guide
 
-欢迎提出 Issue 或 Pull Request 以改进项目。如有任何建议或疑问，请随时联系我们。
+Feel free to submit Issues or Pull Requests to improve the project. If you have any suggestions or questions, don't hesitate to contact us.
 
-*基于 ImGui 和 C++ 开发 | 由 Touken 创建*
+*Developed using ImGui and C++ | Created by Touken*
